@@ -164,8 +164,26 @@ fn oura_bootstrap(
             adahandle_policy: "".to_string(),
         }
     } else {
-        ChainWellKnownInfo::try_from_magic(*magic)
-            .map_err(|_| anyhow!("chain well known info failed"))?
+        match ChainWellKnownInfo::try_from_magic(*magic) {
+            Ok(info) => info,
+            Err(_) => {
+                tracing::warn!("Magic {} not recognized by oura. Using default Mainnet configuration.", magic.0);
+                ChainWellKnownInfo {
+                    byron_epoch_length: 21600,
+                    byron_slot_length: 20,
+                    byron_known_slot: 0,
+                    byron_known_hash: "".to_string(),
+                    byron_known_time: 1506203091,
+                    shelley_epoch_length: 432000,
+                    shelley_slot_length: 1,
+                    shelley_known_slot: 0,
+                    shelley_known_hash: "".to_string(),
+                    shelley_known_time: 1596059091,
+                    address_hrp: "addr".to_string(),
+                    adahandle_policy: "".to_string(),
+                }
+            }
+        }
     };
 
     let utils = Arc::new(Utils::new(well_known));

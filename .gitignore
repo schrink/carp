@@ -21,3 +21,8 @@ dev_env
 # other
 *.session.sql
 secrets/
+
+# deployment data
+deployment/**/postgres-data/
+deployment/**/node-db/
+deployment/**/node-ipc/

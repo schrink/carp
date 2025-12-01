@@ -200,7 +200,17 @@ async fn main() -> anyhow::Result<()> {
                 "preprod" => dcspark_blockchain_source::cardano::NetworkConfiguration::preprod(),
                 "preview" => dcspark_blockchain_source::cardano::NetworkConfiguration::preview(),
                 "sanchonet" => dcspark_blockchain_source::cardano::NetworkConfiguration::sancho(),
-                _ => return Err(anyhow::anyhow!("network not supported by source")),
+                _ => {
+                    if network.parse::<u64>().is_ok() {
+                        tracing::warn!(
+                            "Unknown network '{}', defaulting to Mainnet configuration",
+                            network
+                        );
+                        dcspark_blockchain_source::cardano::NetworkConfiguration::mainnet()
+                    } else {
+                        return Err(anyhow::anyhow!("network not supported by source"));
+                    }
+                }
             };
 
             // try to find a confirmed point.
