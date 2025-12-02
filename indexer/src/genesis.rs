@@ -26,25 +26,26 @@ pub async fn process_genesis(
 ) -> anyhow::Result<()> {
     // https://github.com/txpipe/oura/blob/67b01e8739ed2927ced270e08daea74b03bcc7f7/src/sources/common.rs#L91
     let genesis_path = match network {
-        "mainnet" => GENESIS_MAINNET,
-        "testnet" => GENESIS_TESTNET,
-        "preview" => GENESIS_PREVIEW,
-        "preprod" => GENESIS_PREPROD,
-        "sanchonet" => GENESIS_SANCHONET,
-        rest => {
-            return Err(anyhow!(
-                "{} is invalid. NETWORK must be either mainnet/preview/preprod/testnet",
-                rest
-            ))
-        }
+        "mainnet" => GENESIS_MAINNET.to_string(),
+        "testnet" => GENESIS_TESTNET.to_string(),
+        "preview" => GENESIS_PREVIEW.to_string(),
+        "preprod" => GENESIS_PREPROD.to_string(),
+        "sanchonet" => GENESIS_SANCHONET.to_string(),
+        custom => format!("./genesis/{}-byron-genesis.json", custom),
     };
 
     let task_perf_aggregator = Arc::new(Mutex::new(TaskPerfAggregator::default()));
 
-    tracing::info!("Parsing genesis file...");
+    tracing::info!("Parsing genesis file: {}", genesis_path);
     let mut time_counter = std::time::Instant::now();
 
-    let file = fs::File::open(genesis_path).expect("Failed to open genesis file");
+    let file = fs::File::open(&genesis_path).map_err(|e| {
+        anyhow!(
+            "Failed to open genesis file at {}: {}. Make sure the file exists.",
+            genesis_path,
+            e
+        )
+    })?;
     let genesis_file: Box<GenesisData> = Box::new(
         parse_genesis_data(file).map_err(|err| anyhow!("can't parse genesis data: {:?}", err))?,
     );
